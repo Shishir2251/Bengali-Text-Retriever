@@ -1,0 +1,3 @@
+llm_provider: gemini
+model: gemini-2.5-flash
+google_api_key: 'AIzaSyAF_1hT-ZGgkJ5YiGL7E8fsGlcqQQq4jYc'
