@@ -1,0 +1,6 @@
+tenv/
+*.pdf
+data/
+
+*/__pycache__/
+__pycache__/
