@@ -1,13 +1,34 @@
-import faiss, pickle
+import faiss
+import pickle
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from src.embed_store import get_embedding
 
-model = SentenceTransformer("BAAI/bge-m3")
+# Load FAISS index and chunks
+try:
+    index = faiss.read_index("db/faiss.index")
+    chunks = pickle.load(open("db/chunks.pkl", "rb"))
+    print("FAISS index and documents loaded successfully.")
+except Exception as e:
+    print("Error loading FAISS index:", e)
+    index = None
+    chunks = []
 
-index = faiss.read_index("db/faiss.index")
-chunks = pickle.load(open("db/chunks.pkl", "rb"))
+def retrieve(query, top_k=5):
+    """
+    Retrieve top_k chunks from FAISS based on query.
+    Returns a list of matched text chunks.
+    """
+    if index is None:
+        return ["Vector DB not found. Build it first!"]
 
-def retrieve(query, k=5):
-    q_emb = model.encode([query])
-    D, I = index.search(np.array(q_emb), k)
-    return [chunks[i] for i in I[0]]
+    # Get embedding of query
+    query_emb = get_embedding(query)  # shape (1, dim)
+    
+    # Search FAISS
+    D, I = index.search(query_emb, top_k)  # distances and indices
+    
+    results = []
+    for i in I[0]:
+        if i < len(chunks):
+            results.append(chunks[i])
+    return results
