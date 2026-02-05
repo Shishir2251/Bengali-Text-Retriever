@@ -3,11 +3,14 @@ import faiss
 import numpy as np
 import pickle
 
-# Load HuggingFace model
+# Load HuggingFace model (BAAI/bge-m3)
 model = SentenceTransformer("BAAI/bge-m3")
 
-# Bangla-aware chunking (no NLTK)
+# --- Bangla-aware chunking ---
 def chunk_text(text, chunk_size=6):
+    """
+    Splits text into chunks of 'chunk_size' sentences using Bengali full stop '।'
+    """
     sentences = text.replace("\n", " ").split("।")
     sentences = [s.strip() for s in sentences if len(s.strip()) > 20]
 
@@ -17,23 +20,16 @@ def chunk_text(text, chunk_size=6):
         chunks.append(chunk)
     return chunks
 
-# Build FAISS vector DB from chunks
+# --- Build FAISS vector DB from chunks ---
 def build_vector_db(chunks):
-    # Encode embeddings with normalization (for cosine similarity)
-    embeddings = model.encode(chunks, normalize_embeddings=True)  # FIXED typo
-    # Use cosine similarity (IP) instead of L2
-    index = faiss.IndexFlatIP(embeddings.shape[1])
+    embeddings = model.encode(chunks, normalize_embeddings=True)  # fix typo
+    index = faiss.IndexFlatIP(embeddings.shape[1])  # use cosine similarity
     index.add(np.array(embeddings, dtype=np.float32))
-    # Save index and chunks
     faiss.write_index(index, "db/faiss.index")
     pickle.dump(chunks, open("db/chunks.pkl", "wb"))
-    print("FAISS index and chunks saved successfully!")
+    print("✅ FAISS index and chunks saved successfully!")
 
-# Convert single text into embedding (for query)
+# --- Convert single text into embedding ---
 def get_embedding(text):
-    """
-    Convert a string into a normalized vector embedding.
-    Returns a numpy array of shape (1, embedding_dim)
-    """
-    emb = model.encode([text], normalize_embeddings=True)  # normalize for cosine similarity
+    emb = model.encode([text], normalize_embeddings=True)
     return np.array(emb, dtype=np.float32)

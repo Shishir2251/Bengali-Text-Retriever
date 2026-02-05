@@ -10,3 +10,4 @@ nltk
 pytesseract 
 pillow 
 pdf2image
+
