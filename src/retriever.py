@@ -1,7 +1,7 @@
 import faiss
 import pickle
 import numpy as np
-from src.embed_store import get_embedding
+from src.embed_store import model
 
 # Load FAISS index and chunks
 try:
@@ -13,22 +13,16 @@ except Exception as e:
     index = None
     chunks = []
 
-def retrieve(query, top_k=5):
-    """
-    Retrieve top_k chunks from FAISS based on query.
-    Returns a list of matched text chunks.
-    """
+def retrieve(query, k=5):
     if index is None:
-        return ["Vector DB not found. Build it first!"]
+        return []
 
-    # Get embedding of query
-    query_emb = get_embedding(query)  # shape (1, dim)
-    
-    # Search FAISS
-    D, I = index.search(query_emb, top_k)  # distances and indices
-    
-    results = []
-    for i in I[0]:
-        if i < len(chunks):
-            results.append(chunks[i])
+    # Encode query
+    q_emb = model.encode([query], normalize_embeddings=True)
+
+    # Search
+    D, I = index.search(np.array(q_emb), k)
+
+    # Return matched chunks
+    results = [chunks[i] for i in I[0] if i < len(chunks)]
     return results

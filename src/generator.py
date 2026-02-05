@@ -1,21 +1,17 @@
 import ollama
 
+import requests
+
 def generate_answer(query, contexts):
-    context_text = "\n".join(contexts)
-
     prompt = f"""
-Answer based ONLY on context.
+প্রশ্ন: {query}
 
-Context:
-{context_text}
+তথ্য:
+{contexts}
 
-Question:
-{query}
-
-Answer:
+সংক্ষিপ্ত ও সঠিক উত্তর দাও:
 """
-    response = ollama.chat(
-        model="llama3",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return response['message']['content']
+    r = requests.post("http://localhost:11434/api/generate",
+        json={"model":"mistral","prompt":prompt,"stream":False})
+    return r.json()["response"]
+
