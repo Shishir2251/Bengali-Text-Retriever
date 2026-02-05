@@ -6,3 +6,8 @@ faiss-cpu
 langchain
 ollama
 regex
+nltk
+pytesseract 
+pillow 
+pdf2image
+
